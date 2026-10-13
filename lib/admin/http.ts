@@ -37,7 +37,7 @@ export function apiError(error: unknown) {
     );
   if (error instanceof MarketingError)
     return NextResponse.json(
-      { error: error.message },
+      { error: error.message, ...(error.sendState ? { sendState: error.sendState } : {}) },
       { status: error.status },
     );
   console.error("ATLAS_ADMIN", error instanceof Error ? error.name : "unknown");

@@ -26,6 +26,8 @@ Login links are signed, expire after at most ten minutes and are bound to an Htt
 4. Click **Enviar campaña** on a saved draft to broadcast directly to Atlas's segment, without a modal or typing the subject. The client blocks duplicate clicks; server-side subject and content revision checks reject stale previews.
 5. Resend handles the durable send, throttling, unsubscribes and suppressions; saving a draft never sends it.
 
+The panel reads live Resend contact usage and shows the account's contact limit, an upgrade link, and a refresh button when over quota. A known contact overage blocks broadcasts before a send request is submitted; test emails remain available. Known pre-send failures return `sendState: not_sent` so the UI does not incorrectly show an ambiguous result. Network errors and uncertain provider outcomes still require checking campaign state before retrying.
+
 Campaign lookups enforce segment and sender ownership. The listing filters by Atlas segment. Contact additions preserve existing unsubscribe status; no mass reactivation or global updates. Contact/campaign pagination exposes cursors and does not present page counts as totals. Resend API errors remain visible, and sending is blocked when configuration is missing.
 
 ## Explicit operator setup

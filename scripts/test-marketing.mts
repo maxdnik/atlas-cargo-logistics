@@ -43,6 +43,7 @@ const calls: {
 }[] = [];
 let domainVerified = true,
   unsubscribed = false;
+let contactUsage = { used: 7466, limit: 10000 };
 const broadcast = {
   id,
   name: "[Atlas] Presentación",
@@ -65,7 +66,8 @@ globalThis.fetch = async (input: RequestInfo | URL, options?: RequestInit) => {
     headers: new Headers(options?.headers),
   });
   let data: unknown;
-  if (url.pathname === "/domains")
+  if (url.pathname === "/usage") data = { contacts: contactUsage };
+  else if (url.pathname === "/domains")
     data = {
       data: [
         {
@@ -253,6 +255,15 @@ result = await campaignRoute.POST(
   context,
 );
 assert.equal(result.status, 409);
+contactUsage = { used: 7466, limit: 1000 };
+const sendsBeforeQuotaCheck = calls.filter((c) => c.path.endsWith("/send")).length;
+result = await campaignRoute.POST(request({ action: "send", confirm: broadcast.subject, revision: auth.digest(broadcast.html) }), context);
+assert.equal(result.status, 409);
+const quotaError = await result.json();
+assert.equal(quotaError.sendState, "not_sent");
+assert.match(quotaError.error, /1.000 contactos/);
+assert.equal(calls.filter((c) => c.path.endsWith("/send")).length, sendsBeforeQuotaCheck);
+contactUsage = { used: 7466, limit: 10000 };
 result = await campaignRoute.POST(
   request({ action: "send", confirm: broadcast.subject, revision: "stale" }),
   context,

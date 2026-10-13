@@ -17,6 +17,7 @@ export class MarketingError extends Error {
   constructor(
     message: string,
     public status = 400,
+    public sendState?: "not_sent",
   ) {
     super(message);
   }
@@ -143,6 +144,7 @@ export async function senderStatus() {
       verified: false,
       domainStatus: "Sin conectar",
       records: [],
+      contactCapacity: null,
     };
   const domains = unwrap(await resend().domains.list({ limit: 100 }));
   const domain = domains.data.find(
@@ -155,8 +157,15 @@ export async function senderStatus() {
       verified: false,
       domainStatus: "Dominio pendiente",
       records: [],
+      contactCapacity: null,
     };
   const details = unwrap(await resend().domains.get(domain.id));
+  // Usage is advisory for the status panel; the provider still enforces its limits.
+  const usage = await resend().usage.get();
+  const contacts = usage.data?.contacts;
+  const contactCapacity = contacts && Number.isFinite(contacts.used) && Number.isFinite(contacts.limit)
+    ? { used: contacts.used, limit: contacts.limit, exceeded: contacts.used > contacts.limit }
+    : null;
   return {
     configured,
     segmentConfigured,
@@ -165,6 +174,7 @@ export async function senderStatus() {
     records: details.records,
     openTracking: details.open_tracking,
     clickTracking: details.click_tracking,
+    contactCapacity,
   };
 }
 export async function requireVerifiedSender() {
@@ -174,4 +184,5 @@ export async function requireVerifiedSender() {
       "Verificá el dominio de Atlas en Resend antes de enviar. SPF y DKIM deben estar aprobados.",
       409,
     );
+  return state;
 }

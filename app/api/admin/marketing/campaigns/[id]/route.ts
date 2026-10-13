@@ -39,9 +39,12 @@ export async function GET(request: Request, context: Context) {
   }
 }
 export async function POST(request: Request, context: Context) {
+  let isSending = false;
+  let sendRequestStarted = false;
   try {
     await authorize(request);
     const body = await readBody(request);
+    isSending = body.action === "send";
     const id = (await context.params).id;
     const campaign = await getCampaign(id);
     if (body.action === "save") {
@@ -92,7 +95,15 @@ export async function POST(request: Request, context: Context) {
           "La campaña cambió. Abrila nuevamente y revisá el contenido antes de enviar.",
           409,
         );
-      await requireVerifiedSender();
+      const sender = await requireVerifiedSender();
+      if (sender.contactCapacity?.exceeded) {
+        const { used, limit } = sender.contactCapacity;
+        throw new MarketingError(
+          `El plan de Resend permite ${limit.toLocaleString("es-AR")} contactos y la cuenta tiene ${used.toLocaleString("es-AR")}. Ampliá el plan de contactos en Resend para enviar esta campaña.`,
+          409,
+          "not_sent",
+        );
+      }
       const content = decodeCampaign(campaign.html || "");
       if (!content)
         throw new MarketingError("No se puede enviar este formato de campaña.");
@@ -105,10 +116,15 @@ export async function POST(request: Request, context: Context) {
           409,
         );
       // Send this existing broadcast exactly once; never clone it or retry a mutation automatically.
-      return json(unwrap(await resend().broadcasts.send(id)));
+      sendRequestStarted = true;
+      const result = await resend().broadcasts.send(id);
+      if (result.error?.statusCode && result.error.statusCode >= 400 && result.error.statusCode < 500 && ![408, 409].includes(result.error.statusCode))
+        sendRequestStarted = false;
+      return json(unwrap(result));
     }
     throw new MarketingError("Acción inválida.");
   } catch (e) {
+    if (isSending && !sendRequestStarted && e instanceof MarketingError) e.sendState = "not_sent";
     return apiError(e);
   }
 }

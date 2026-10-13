@@ -47,10 +47,14 @@ type Setup = {
   domainStatus: string;
   openTracking?: boolean;
   clickTracking?: boolean;
+  contactCapacity?: { used: number; limit: number; exceeded: boolean } | null;
   from: string;
   replyTo: string;
   records: { name: string; type: string; value: string; status: string }[];
 };
+class ApiError extends Error {
+  constructor(message: string, public sendState?: "not_sent") { super(message); }
+}
 async function api(path: string, body?: unknown) {
   const r = await fetch(
     `/api/admin/${path}`,
@@ -67,7 +71,7 @@ async function api(path: string, body?: unknown) {
     window.location.assign("/admin/login");
     throw Error("Tu sesión venció.");
   }
-  if (!r.ok) throw Error(d.error || "No pudimos completar la operación.");
+  if (!r.ok) throw new ApiError(d.error || "No pudimos completar la operación.", d.sendState);
   return d;
 }
 function date(value: string) {
@@ -275,17 +279,22 @@ export default function MarketingPanel({ testEmail }: { testEmail: string }) {
   async function sendCampaign() {
     if (
       sendInFlight.current || busy || dirty || uncertain ||
-      !editor || editor.id === "new" || !editable || !setup?.verified
+      !editor || editor.id === "new" || !editable || !setup?.verified || setup.contactCapacity?.exceeded
     ) return;
     sendInFlight.current = true;
     try {
       await task(async () => {
         setUncertain(true);
-        await api(`marketing/campaigns/${editor.id}`, {
-          action: "send",
-          confirm: content.subject,
-          revision: editor.revision,
-        });
+        try {
+          await api(`marketing/campaigns/${editor.id}`, {
+            action: "send",
+            confirm: content.subject.trim(),
+            revision: editor.revision,
+          });
+        } catch (e) {
+          if (e instanceof ApiError && e.sendState === "not_sent") setUncertain(false);
+          throw e;
+        }
         setUncertain(false);
         setEditor({ ...editor, status: "queued" });
         setMessage("Campaña en cola de envío. Consultá su avance en Resultados.");
@@ -408,6 +417,22 @@ export default function MarketingPanel({ testEmail }: { testEmail: string }) {
           {message && (
             <div className="admin-success" role="status">
               {message}
+            </div>
+          )}
+          {setup?.contactCapacity?.exceeded && (
+            <div className="admin-notice" role="status">
+              <div>
+                <strong>Ampliá el plan de contactos para enviar campañas.</strong>
+                <p>
+                  Tu plan de Resend permite {setup.contactCapacity.limit.toLocaleString("es-AR")} contactos y
+                  la cuenta tiene {setup.contactCapacity.used.toLocaleString("es-AR")}. La base está guardada;
+                  Resend bloquea las campañas hasta ampliar el plan.
+                </p>
+                <div className="admin-actions">
+                  <a className="admin-button" href="https://resend.com/settings/billing" target="_blank" rel="noopener noreferrer">Abrir planes de Resend <ArrowUpRight size={16} /></a>
+                  <button className="admin-button" disabled={busy} onClick={() => void task(async () => { setSetup(await api("marketing/status")); })}>Ya lo actualicé: comprobar</button>
+                </div>
+              </div>
             </div>
           )}
           {setup && !setup.verified && view !== "settings" && (
@@ -603,7 +628,8 @@ export default function MarketingPanel({ testEmail }: { testEmail: string }) {
                       dirty ||
                       uncertain ||
                       editor.id === "new" ||
-                      !setup?.verified
+                      !setup?.verified ||
+                      setup.contactCapacity?.exceeded
                     }
                     onClick={sendCampaign}
                   >
