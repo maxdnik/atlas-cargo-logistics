@@ -104,8 +104,7 @@ export default function MarketingPanel({ testEmail }: { testEmail: string }) {
   const [editor, setEditor] = useState<Campaign | null>(null);
   const [content, setContent] = useState<CampaignContent>(defaultCampaign);
   const [saved, setSaved] = useState("");
-  const [confirm, setConfirm] = useState(false);
-  const [confirmation, setConfirmation] = useState("");
+  const sendInFlight = useRef(false);
   const [preview, setPreview] = useState(false);
   const [uncertain, setUncertain] = useState(false);
   const [query, setQuery] = useState("");
@@ -201,7 +200,6 @@ export default function MarketingPanel({ testEmail }: { testEmail: string }) {
     )
       return;
     setEditor(null);
-    setConfirm(false);
     setUncertain(false);
     setView(next);
     setMessage("");
@@ -218,7 +216,6 @@ export default function MarketingPanel({ testEmail }: { testEmail: string }) {
       created_at: new Date().toISOString(),
     });
     setSaved("");
-    setConfirm(false);
     setMessage("");
     setError("");
   }
@@ -231,7 +228,6 @@ export default function MarketingPanel({ testEmail }: { testEmail: string }) {
       setEditor(d);
       setContent(d.content);
       setSaved(JSON.stringify(d.content));
-      setConfirm(false);
     });
   }
   async function save() {
@@ -275,6 +271,28 @@ export default function MarketingPanel({ testEmail }: { testEmail: string }) {
         `Prueba aceptada por Resend para ${testEmail}. Revisá la bandeja de entrada y Spam.`,
       );
     });
+  }
+  async function sendCampaign() {
+    if (
+      sendInFlight.current || busy || dirty || uncertain ||
+      !editor || editor.id === "new" || !editable || !setup?.verified
+    ) return;
+    sendInFlight.current = true;
+    try {
+      await task(async () => {
+        setUncertain(true);
+        await api(`marketing/campaigns/${editor.id}`, {
+          action: "send",
+          confirm: content.subject,
+          revision: editor.revision,
+        });
+        setUncertain(false);
+        setEditor({ ...editor, status: "queued" });
+        setMessage("Campaña en cola de envío. Consultá su avance en Resultados.");
+      });
+    } finally {
+      sendInFlight.current = false;
+    }
   }
   const filtered = contacts.filter((c) =>
     `${c.email} ${c.first_name} ${c.last_name}`
@@ -414,6 +432,7 @@ export default function MarketingPanel({ testEmail }: { testEmail: string }) {
               <div className="editor-toolbar">
                 <button
                   className="admin-text-link"
+                  disabled={busy}
                   onClick={() => navigate("campaigns")}
                 >
                   <ArrowLeft size={16} />
@@ -573,8 +592,8 @@ export default function MarketingPanel({ testEmail }: { testEmail: string }) {
                   <div>
                     <h2>Enviar a la lista de Atlas</h2>
                     <p>
-                      Se respetarán las bajas y exclusiones registradas en
-                      Resend.
+                      Al hacer clic, la campaña se enviará a los contactos
+                      suscriptos de Atlas. Las bajas y exclusiones quedan fuera.
                     </p>
                   </div>
                   <button
@@ -586,72 +605,12 @@ export default function MarketingPanel({ testEmail }: { testEmail: string }) {
                       editor.id === "new" ||
                       !setup?.verified
                     }
-                    onClick={() => {
-                      setConfirmation("");
-                      setConfirm(true);
-                    }}
+                    onClick={sendCampaign}
                   >
                     <Send size={17} />
-                    Revisar envío
+                    {busy ? "Procesando…" : "Enviar campaña"}
                   </button>
                 </section>
-              )}
-              {confirm && (
-                <div className="admin-modal-backdrop">
-                  <section
-                    className="admin-modal"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-labelledby="send-title"
-                  >
-                    <h2 id="send-title">Confirmar campaña</h2>
-                    <p>
-                      Se enviará <strong>{content.subject}</strong> a los
-                      contactos suscriptos de la lista de Atlas Cargo. El envío
-                      no se puede deshacer.
-                    </p>
-                    <label>
-                      Escribí el asunto para confirmar
-                      <input
-                        autoFocus
-                        value={confirmation}
-                        onChange={(e) => setConfirmation(e.target.value)}
-                      />
-                    </label>
-                    <div className="admin-actions">
-                      <button
-                        className="admin-button"
-                        disabled={busy}
-                        onClick={() => setConfirm(false)}
-                      >
-                        Cancelar
-                      </button>
-                      <button
-                        className="admin-button primary"
-                        disabled={busy || confirmation !== content.subject}
-                        onClick={() =>
-                          void task(async () => {
-                            setUncertain(true);
-                            setConfirm(false);
-                            await api(`marketing/campaigns/${editor.id}`, {
-                              action: "send",
-                              confirm: confirmation,
-                              revision: editor.revision,
-                            });
-                            setUncertain(false);
-                            setConfirm(false);
-                            setEditor({ ...editor, status: "queued" });
-                            setMessage(
-                              "Resend aceptó la campaña. Actualizá el estado para consultar el avance.",
-                            );
-                          })
-                        }
-                      >
-                        {busy ? "Procesando…" : "Enviar campaña"}
-                      </button>
-                    </div>
-                  </section>
-                </div>
               )}
             </>
           ) : (

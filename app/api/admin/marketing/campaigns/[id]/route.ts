@@ -84,7 +84,7 @@ export async function POST(request: Request, context: Context) {
         );
       if (body.confirm !== campaign.subject)
         throw new MarketingError(
-          "Confirmá el asunto exacto antes de enviar.",
+          "El asunto cambió. Abrí nuevamente la campaña antes de enviar.",
           409,
         );
       if (body.revision !== digest(campaign.html || ""))

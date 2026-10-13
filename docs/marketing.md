@@ -23,7 +23,7 @@ Login links are signed, expire after at most ten minutes and are bound to an Htt
 1. Create a draft using the Atlas template; preview HTML is escaped and sandboxed.
 2. Save to Resend. Test emails use stable idempotency keys. Broadcast create/send requests are not retried automatically; an ambiguous result locks the corresponding action until the user returns to the list and reviews provider state.
 3. Send a test only to the server-configured admin email.
-4. Review and explicitly confirm the exact subject before broadcasting to Atlas's segment. A content revision check rejects stale previews.
+4. Click **Enviar campaña** on a saved draft to broadcast directly to Atlas's segment, without a modal or typing the subject. The client blocks duplicate clicks; server-side subject and content revision checks reject stale previews.
 5. Resend handles the durable send, throttling, unsubscribes and suppressions; saving a draft never sends it.
 
 Campaign lookups enforce segment and sender ownership. The listing filters by Atlas segment. Contact additions preserve existing unsubscribe status; no mass reactivation or global updates. Contact/campaign pagination exposes cursors and does not present page counts as totals. Resend API errors remain visible, and sending is blocked when configuration is missing.
