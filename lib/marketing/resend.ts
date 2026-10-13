@@ -52,13 +52,27 @@ export function resend() {
     throw new MarketingError("Falta conectar la cuenta de Resend.", 503);
   return new AtlasResend(process.env.RESEND_API_KEY);
 }
-export function segmentId() {
-  if (!process.env.ATLAS_RESEND_SEGMENT_ID)
-    throw new MarketingError(
-      "Falta configurar la lista de contactos de Atlas.",
-      503,
-    );
-  return process.env.ATLAS_RESEND_SEGMENT_ID;
+export async function segmentId() {
+  if (process.env.ATLAS_RESEND_SEGMENT_ID)
+    return process.env.ATLAS_RESEND_SEGMENT_ID;
+  // Resolve only the uniquely named Atlas segment; never use an account-wide list.
+  const client = resend();
+  let after: string | undefined;
+  let selected: string | undefined;
+  do {
+    const page = unwrap(await client.segments.list({ limit: 100, after }));
+    for (const candidate of page.data.filter((item) => item.name === "Atlas Cargo Logistics")) {
+      if (selected)
+        throw new MarketingError("Hay más de una lista de Atlas. Configurá su identificador antes de continuar.", 503);
+      selected = candidate.id;
+    }
+    after = page.has_more ? page.data.at(-1)?.id : undefined;
+    if (page.has_more && !after)
+      throw new MarketingError("No se pudo comprobar la lista de Atlas.", 503);
+  } while (after);
+  if (!selected)
+    throw new MarketingError("Falta configurar la lista de contactos de Atlas.", 503);
+  return selected;
 }
 export function unwrap<T>(result: {
   data: T | null;
@@ -96,7 +110,7 @@ export function decodeCampaign(html: string) {
 }
 export function assertAtlasCampaign(
   c: Pick<GetBroadcastResponseSuccess, "segment_id" | "audience_id" | "from">,
-  segment = segmentId(),
+  segment: string,
 ) {
   if ((c.segment_id || c.audience_id) !== segment || c.from !== FROM)
     throw new MarketingError("La campaña no pertenece a Atlas.", 404);
@@ -105,23 +119,23 @@ export async function getCampaign(id: string) {
   if (!/^[a-f0-9-]{36}$/i.test(id))
     throw new MarketingError("Campaña inválida.", 404);
   const campaign = unwrap(await resend().broadcasts.get(id));
-  assertAtlasCampaign(campaign);
+  assertAtlasCampaign(campaign, await segmentId());
   return campaign;
 }
-export function broadcastPayload(content: CampaignContent) {
+export async function broadcastPayload(content: CampaignContent) {
   return {
     name: `[Atlas] ${content.name}`,
     subject: content.subject,
     previewText: content.preview,
     from: FROM,
     replyTo: [ATLAS_EMAIL],
-    segmentId: segmentId(),
+    segmentId: await segmentId(),
     html: encodedCampaign(content),
   };
 }
 export async function senderStatus() {
   const configured = Boolean(process.env.RESEND_API_KEY);
-  const segmentConfigured = Boolean(process.env.ATLAS_RESEND_SEGMENT_ID);
+  const segmentConfigured = configured ? Boolean(await segmentId()) : false;
   if (!configured)
     return {
       configured,

@@ -323,3 +323,28 @@ assert.equal(result.status, 401);
 console.log(
   "PASS: no email enumeration send, browser-bound login and challenge consumption",
 );
+
+// Resolution must scan every page and refuse ambiguity instead of selecting another brand.
+const pinnedSegment = process.env.ATLAS_RESEND_SEGMENT_ID;
+delete process.env.ATLAS_RESEND_SEGMENT_ID;
+let segmentMode = "paged";
+globalThis.fetch = async (input: RequestInfo | URL) => {
+  const url = new URL(String(input));
+  assert.equal(url.pathname, "/segments");
+  const atlas = { id: pinnedSegment, name: "Atlas Cargo Logistics" };
+  const data = segmentMode === "duplicate"
+    ? { data: [atlas, { ...atlas, id: "duplicate" }], has_more: false }
+    : segmentMode === "missing"
+      ? { data: [{ id: "shopx", name: "ShopX" }], has_more: false }
+      : url.searchParams.get("after")
+        ? { data: [atlas], has_more: false }
+        : { data: [{ id: "other-brand", name: "Another brand" }], has_more: true };
+  return new Response(JSON.stringify(data), { headers: { "Content-Type": "application/json" } });
+};
+assert.equal(await provider.segmentId(), pinnedSegment);
+segmentMode = "duplicate";
+await assert.rejects(() => provider.segmentId(), /más de una lista/);
+segmentMode = "missing";
+await assert.rejects(() => provider.segmentId(), /Falta configurar/);
+process.env.ATLAS_RESEND_SEGMENT_ID = pinnedSegment;
+console.log("PASS: paginated Atlas segment resolution refuses missing or ambiguous matches");

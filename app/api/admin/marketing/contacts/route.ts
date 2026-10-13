@@ -14,7 +14,7 @@ export async function GET(request: Request) {
     if (after) z.string().uuid().parse(after);
     const result = unwrap(
       await resend().contacts.list({
-        segmentId: segmentId(),
+        segmentId: await segmentId(),
         limit: 50,
         after,
       }),
@@ -56,7 +56,7 @@ export async function POST(request: Request) {
         unwrap(
           await client.contacts.segments.add({
             contactId: existing.data.id,
-            segmentId: segmentId(),
+            segmentId: await segmentId(),
           }),
         ),
       );
@@ -68,7 +68,7 @@ export async function POST(request: Request) {
           email: data.email,
           firstName: data.firstName,
           lastName: data.lastName,
-          segments: [{ id: segmentId() }],
+          segments: [{ id: await segmentId() }],
         }),
       ),
     );

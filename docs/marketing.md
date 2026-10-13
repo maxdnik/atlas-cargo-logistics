@@ -7,7 +7,7 @@ The private panel is `/admin`; campaigns live at `/admin/marketing`. Next.js rou
 Configure only on the Atlas Vercel project:
 
 - `RESEND_API_KEY`: a dedicated key with access to domains, broadcasts and contacts. Sending-only keys cannot operate this panel. Never use a `NEXT_PUBLIC_` prefix.
-- `ATLAS_RESEND_SEGMENT_ID`: ID of a dedicated **Atlas Cargo** segment. Never select ShopX or DePerritos segments.
+- `ATLAS_RESEND_SEGMENT_ID`: optional explicit ID of the dedicated **Atlas Cargo Logistics** segment. Without it, the server resolves that exact name and refuses missing or duplicate matches. Never select ShopX or DePerritos segments.
 - `ATLAS_SESSION_SECRET`: at least 32 random characters; rotating this revokes all login links and sessions.
 - `ATLAS_ADMIN_EMAIL`: the sole administrator and test recipient, initially `maxidimnik@gmail.com`.
 - `ATLAS_ADMIN_LOGIN_FROM`: optional verified sender used only for private login links; defaults to the Atlas sender.
@@ -33,13 +33,16 @@ Campaign lookups enforce segment and sender ownership. The listing filters by At
 `node --conditions=react-server --import tsx scripts/setup-marketing.mts --apply`
 uses the server-side Resend key to check the expected verified Atlas domain,
 find/create its dedicated segment, and save the presentation as an unsent draft.
-It prints only resource IDs and status. Set the returned segment ID as
-`ATLAS_RESEND_SEGMENT_ID` in production and redeploy normally.
+It prints only resource IDs and status. The panel resolves the uniquely named
+segment; optionally pin its ID with `ATLAS_RESEND_SEGMENT_ID` in production.
 
 Only append `--send-test=<unique-operation-id>` for an authorized test to the
 fixed administrator address. The operation ID is Resend's 24-hour email
 idempotency key. Review logs/provider state before any rerun; do not reuse this
 as a permanent build command. No contacts are imported or broadcasts sent.
+
+Use `--check` instead of `--apply` to verify the live domain, segment resolution,
+contact access and saved draft without creating resources or sending emails.
 
 ## Next phase
 

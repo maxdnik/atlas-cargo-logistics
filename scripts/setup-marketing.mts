@@ -1,5 +1,5 @@
 /** Explicit operator command; never called by the normal build or a public route. */
-import { resend, unwrap, broadcastPayload, getCampaign } from "../lib/marketing/resend";
+import { resend, unwrap, broadcastPayload, getCampaign, segmentId } from "../lib/marketing/resend";
 import { ATLAS_EMAIL, FROM, defaultCampaign, renderCampaign } from "../lib/marketing/schema";
 
 const SEGMENT_NAME = "Atlas Cargo Logistics";
@@ -7,11 +7,13 @@ const EXPECTED_DOMAIN_ID = "05f77bdf-8633-429d-805b-1938bdc5b561";
 const RECIPIENT = "maxidimnik@gmail.com";
 const args = process.argv.slice(2);
 const apply = args.includes("--apply");
+const check = args.includes("--check");
 const testOperation = args.find((arg) => arg.startsWith("--send-test="))?.split("=")[1];
 let step = "configuration";
 
 async function main() {
-  if (!apply) throw new Error("Use --apply only for an explicitly authorized setup.");
+  if (apply === check || (check && testOperation))
+    throw new Error("Choose --check (read-only) or an explicitly authorized --apply.");
   if (process.env.ATLAS_ADMIN_EMAIL !== RECIPIENT)
     throw new Error("The configured administrator does not match the authorized test recipient.");
   if (testOperation && !/^[a-z0-9-]{12,100}$/.test(testOperation))
@@ -41,13 +43,18 @@ async function main() {
       if (page.has_more && !after) throw new Error("Incomplete segment pagination.");
     } while (after);
     // Never retry a creation with an unknown result. A later run lists first.
-    segment ??= unwrap(await client.segments.create({ name: SEGMENT_NAME }));
+    if (!segment) {
+      if (check) throw new Error("Atlas segment has not been provisioned.");
+      segment = unwrap(await client.segments.create({ name: SEGMENT_NAME }));
+    }
   }
+  if (await segmentId() !== segment.id) throw new Error("Atlas segment resolution mismatch.");
   process.env.ATLAS_RESEND_SEGMENT_ID = segment.id;
   console.log("ATLAS_SETUP_SEGMENT", JSON.stringify(segment));
+  unwrap(await client.contacts.list({ segmentId: segment.id, limit: 1 }));
 
   step = "draft";
-  const payload = broadcastPayload(defaultCampaign);
+  const payload = await broadcastPayload(defaultCampaign);
   let draftId: string | undefined;
   let after: string | undefined;
   do {
@@ -60,7 +67,10 @@ async function main() {
     after = page.has_more ? page.data.at(-1)?.id : undefined;
     if (page.has_more && !after) throw new Error("Incomplete campaign pagination.");
   } while (after);
-  draftId ??= unwrap(await client.broadcasts.create({ ...payload, send: false })).id;
+  if (!draftId) {
+    if (check) throw new Error("Atlas presentation draft has not been provisioned.");
+    draftId = unwrap(await client.broadcasts.create({ ...payload, send: false })).id;
+  }
   const draft = await getCampaign(draftId);
   console.log("ATLAS_SETUP_DRAFT", JSON.stringify({ id: draft.id, status: draft.status, segmentId: segment.id }));
 

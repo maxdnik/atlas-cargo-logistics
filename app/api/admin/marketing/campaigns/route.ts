@@ -14,9 +14,10 @@ export async function GET(request: Request) {
     const after = new URL(request.url).searchParams.get("after") || undefined;
     if (after) z.string().uuid().parse(after);
     const result = unwrap(await resend().broadcasts.list({ limit: 50, after }));
+    const segment = await segmentId();
     return json({
       data: result.data.filter(
-        (c) => (c.segment_id || c.audience_id) === segmentId(),
+        (c) => (c.segment_id || c.audience_id) === segment,
       ),
       hasMore: result.has_more,
       nextCursor: result.data.at(-1)?.id,
@@ -30,7 +31,7 @@ export async function POST(request: Request) {
     await authorize(request);
     const body = await readBody(request);
     const content = campaignSchema.parse(body.content);
-    const payload = broadcastPayload(content);
+    const payload = await broadcastPayload(content);
     const result = unwrap(
       await resend().broadcasts.create({ ...payload, send: false }),
     );

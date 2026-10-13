@@ -48,7 +48,7 @@ export async function POST(request: Request, context: Context) {
       if (campaign.status !== "draft")
         throw new MarketingError("Solo se pueden editar los borradores.", 409);
       const content = campaignSchema.parse(body.content);
-      const payload = broadcastPayload(content);
+      const payload = await broadcastPayload(content);
       return json({
         ...unwrap(await resend().broadcasts.update(id, payload)),
         revision: digest(payload.html),
@@ -97,7 +97,7 @@ export async function POST(request: Request, context: Context) {
       if (!content)
         throw new MarketingError("No se puede enviar este formato de campaña.");
       const contacts = unwrap(
-        await resend().contacts.list({ segmentId: segmentId(), limit: 1 }),
+        await resend().contacts.list({ segmentId: await segmentId(), limit: 1 }),
       );
       if (!contacts.data.length)
         throw new MarketingError(
