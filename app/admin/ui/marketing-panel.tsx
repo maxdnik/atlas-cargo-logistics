@@ -12,14 +12,17 @@ import {
   Save,
   Eye,
   RefreshCw,
+  ChartNoAxesCombined,
 } from "lucide-react";
+import MarketingReports from "./marketing-reports";
+import ContactImporter from "./contact-importer";
 import {
   defaultCampaign,
   renderCampaign,
   type CampaignContent,
 } from "@/lib/marketing/schema";
 
-type View = "campaigns" | "contacts" | "settings";
+type View = "campaigns" | "contacts" | "settings" | "reports";
 type Campaign = {
   revision?: string;
   id: string;
@@ -42,6 +45,8 @@ type Setup = {
   segmentConfigured: boolean;
   verified: boolean;
   domainStatus: string;
+  openTracking?: boolean;
+  clickTracking?: boolean;
   from: string;
   replyTo: string;
   records: { name: string; type: string; value: string; status: string }[];
@@ -84,6 +89,9 @@ const statuses: Record<string, string> = {
 
 export default function MarketingPanel({ testEmail }: { testEmail: string }) {
   const [view, setView] = useState<View>("campaigns");
+  const [reportCampaign, setReportCampaign] = useState("");
+  const [contactList, setContactList] = useState("crm");
+  const [contactTotals, setContactTotals] = useState<{ all: number; send: number; blocked: number } | null>(null);
   const [setup, setSetup] = useState<Setup | null>(null);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -112,16 +120,21 @@ export default function MarketingPanel({ testEmail }: { testEmail: string }) {
     setLoading(true);
     setError("");
     try {
-      if (tab === "settings") {
+      if (tab === "reports") {
+        setMore(false);
+      } else if (tab === "settings") {
         setSetup(await api("marketing/status"));
         setMore(false);
       } else {
         const d = await api(
-          `marketing/${tab}${after ? `?after=${encodeURIComponent(after)}` : ""}`,
+          `marketing/${tab}?${new URLSearchParams({ ...(after ? { after } : {}), ...(tab === "contacts" ? { list: contactList } : {}) })}`,
         );
         if (tab === "campaigns")
           setCampaigns((p) => (after ? [...p, ...d.data] : d.data));
-        else setContacts((p) => (after ? [...p, ...d.data] : d.data));
+        else {
+          setContacts((p) => (after ? [...p, ...d.data] : d.data));
+          if (!after) { setContactTotals(null); void api("marketing/contacts/totals").then(setContactTotals).catch(() => {}); }
+        }
         setCursor(d.nextCursor);
         setMore(d.hasMore);
       }
@@ -130,7 +143,7 @@ export default function MarketingPanel({ testEmail }: { testEmail: string }) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [contactList]);
   useEffect(() => {
     let active = true;
     (async () => {
@@ -141,12 +154,16 @@ export default function MarketingPanel({ testEmail }: { testEmail: string }) {
         if (active)
           setError(e instanceof Error ? e.message : "Error de conexión.");
       }
-      await load("campaigns");
     })();
     return () => {
       active = false;
     };
-  }, [load]);
+  }, []);
+  useEffect(() => {
+    // Synchronize a remote request and its loading state when the selected list changes.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void load(view);
+  }, [load, view]);
   useEffect(() => {
     if (!dirty) return;
     const warn = (e: BeforeUnloadEvent) => {
@@ -189,7 +206,7 @@ export default function MarketingPanel({ testEmail }: { testEmail: string }) {
     setView(next);
     setMessage("");
     setQuery("");
-    void load(next);
+    if (view === next) void load(next);
   }
   function newCampaign() {
     setUncertain(false);
@@ -283,6 +300,7 @@ export default function MarketingPanel({ testEmail }: { testEmail: string }) {
           {(
             [
               ["campaigns", Mail, "Campañas"],
+              ["reports", ChartNoAxesCombined, "Resultados"],
               ["contacts", Users, "Contactos"],
               ["settings", Settings2, "Configuración"],
             ] as const
@@ -339,6 +357,8 @@ export default function MarketingPanel({ testEmail }: { testEmail: string }) {
                   ? "Prepará tu próxima campaña"
                   : view === "campaigns"
                     ? "Conectá con tus clientes."
+                    : view === "reports"
+                      ? "Cada envío, en números."
                     : view === "contacts"
                       ? "Tu red de contactos."
                       : "Todo listo para enviar."}
@@ -348,6 +368,8 @@ export default function MarketingPanel({ testEmail }: { testEmail: string }) {
                   ? "Un mensaje claro. La identidad de Atlas. Una nueva oportunidad."
                   : view === "campaigns"
                     ? "Creá y administrá tus campañas de email desde un solo lugar."
+                    : view === "reports"
+                      ? "Entendé el alcance, la respuesta y la calidad de tus campañas."
                     : view === "contacts"
                       ? "Una lista exclusiva para las comunicaciones de Atlas Cargo."
                       : "Revisá el remitente y la autenticación del dominio."}
@@ -634,6 +656,7 @@ export default function MarketingPanel({ testEmail }: { testEmail: string }) {
             </>
           ) : (
             <>
+              {view === "reports" && <MarketingReports key={reportCampaign} initialCampaign={reportCampaign} />}
               {view === "campaigns" && (
                 <>
                   <div className="admin-metrics">
@@ -715,6 +738,7 @@ export default function MarketingPanel({ testEmail }: { testEmail: string }) {
                                 </td>
                                 <td>{date(c.created_at)}</td>
                                 <td>
+                                  <button className="admin-text-link campaign-results" onClick={() => { setReportCampaign(c.id); navigate("reports"); }}>Resultados</button>
                                   <button
                                     className="admin-text-link"
                                     disabled={busy}
@@ -743,6 +767,8 @@ export default function MarketingPanel({ testEmail }: { testEmail: string }) {
               )}
               {view === "contacts" && (
                 <>
+                  <ContactImporter onImported={() => void load("contacts")} onBusyChange={setBusy} />
+                  {contactTotals && <div className="admin-metrics"><div><span>CRM DE ATLAS</span><strong>{contactTotals.all.toLocaleString("es-AR")}</strong><small>Contactos totales</small></div><div><span>LISTA DE ENVÍO</span><strong>{contactTotals.send.toLocaleString("es-AR")}</strong><small>Suscriptos en la lista de campañas</small></div><div><span>EXCLUIDOS</span><strong>{contactTotals.blocked.toLocaleString("es-AR")}</strong><small>Conservados fuera de campañas</small></div></div>}
                   <section className="admin-card">
                     <div className="card-title">
                       <h2>Contactos de Atlas</h2>
@@ -755,6 +781,7 @@ export default function MarketingPanel({ testEmail }: { testEmail: string }) {
                         <RefreshCw size={17} />
                       </button>
                     </div>
+                    <label>Lista<select value={contactList} onChange={(e) => { setContactList(e.target.value); setContacts([]); }}>{[["crm", "Todos los contactos del CRM"], ["send", "Lista de envío"], ["blocked", "Excluidos de campañas"]].map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
                     <input
                       className="contact-search"
                       aria-label="Buscar entre contactos cargados"
@@ -800,7 +827,7 @@ export default function MarketingPanel({ testEmail }: { testEmail: string }) {
                                   <span
                                     className={`admin-status ${c.unsubscribed ? "failed" : "sent"}`}
                                   >
-                                    {c.unsubscribed ? "De baja" : "Suscripto"}
+                                    {contactList === "blocked" ? "Excluido" : c.unsubscribed ? "De baja" : contactList === "send" ? "Suscripto" : "En CRM"}
                                   </span>
                                 </td>
                               </tr>
@@ -923,7 +950,10 @@ export default function MarketingPanel({ testEmail }: { testEmail: string }) {
                             : "Pendiente de conexión"}
                         </dd>
                       </div>
+                      <div><dt>Seguimiento de aperturas</dt><dd>{setup?.openTracking === true ? "Activo" : setup?.openTracking === false ? "Inactivo" : "Sin confirmar"}</dd></div>
+                      <div><dt>Seguimiento de clics</dt><dd>{setup?.clickTracking === true ? "Activo" : setup?.clickTracking === false ? "Inactivo" : "Sin confirmar"}</dd></div>
                     </dl>
+                    {setup?.verified && (!setup.openTracking || !setup.clickTracking) && <div className="admin-notice"><div><strong>Falta activar el seguimiento de interacción.</strong><p>En Resend, abrí Domains → atlas-cargo-logistics.com → Configuration y activá Open Tracking y Click Tracking. Después presioná Comprobar. Esto permite medir los próximos envíos; no reconstruye aperturas anteriores.</p></div></div>}
                   </section>
                   {!setup?.verified && (
                     <section className="admin-card settings-card">

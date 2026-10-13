@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:marketing": "node --conditions=react-server --experimental-test-module-mocks --import tsx scripts/test-marketing.mts"
+    "test:marketing": "node --conditions=react-server --experimental-test-module-mocks --import tsx scripts/test-marketing.mts",
+    "test:reporting": "node --conditions=react-server --experimental-test-module-mocks --import tsx scripts/test-reporting.mts"
   },
   "dependencies": {
     "jose": "^6.2.12",

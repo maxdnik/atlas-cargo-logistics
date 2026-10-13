@@ -6,19 +6,23 @@ import {
   segmentId,
   MarketingError,
 } from "@/lib/marketing/resend";
+import { atlasSegments } from "@/lib/marketing/contact-import";
 export const maxDuration = 60;
 export async function GET(request: Request) {
   try {
     await authorize(request);
     const after = new URL(request.url).searchParams.get("after") || undefined;
     if (after) z.string().uuid().parse(after);
-    const result = unwrap(
+    const list = z.enum(["crm", "send", "blocked"]).parse(new URL(request.url).searchParams.get("list") || "crm");
+    const segments = await atlasSegments();
+    const selected = list === "send" ? segments.send : list === "blocked" ? segments.blocked : segments.crm || segments.send;
+    const result = selected ? unwrap(
       await resend().contacts.list({
-        segmentId: await segmentId(),
+        segmentId: selected,
         limit: 50,
         after,
       }),
-    );
+    ) : { data: [], has_more: false };
     return json({
       data: result.data,
       hasMore: result.has_more,
@@ -45,6 +49,7 @@ export async function POST(request: Request) {
       })
       .parse(body);
     const client = resend();
+    const segments = await atlasSegments();
     const existing = await client.contacts.get({ email: data.email });
     if (existing.data) {
       if (existing.data.unsubscribed)
@@ -52,6 +57,15 @@ export async function POST(request: Request) {
           "Este contacto está dado de baja. Su baja se conserva.",
           409,
         );
+      if (segments.blocked) {
+        let after: string | undefined;
+        do {
+          const memberships = unwrap(await client.contacts.segments.list({ contactId: existing.data.id, limit: 100, after }));
+          if (memberships.data.some((item) => item.id === segments.blocked)) throw new MarketingError("Este contacto está excluido de las campañas de Atlas. Su exclusión se conserva.", 409);
+          after = memberships.has_more ? memberships.data.at(-1)?.id : undefined;
+        } while (after);
+      }
+      if (segments.crm) unwrap(await client.contacts.segments.add({ contactId: existing.data.id, segmentId: segments.crm }));
       return json(
         unwrap(
           await client.contacts.segments.add({
@@ -68,7 +82,7 @@ export async function POST(request: Request) {
           email: data.email,
           firstName: data.firstName,
           lastName: data.lastName,
-          segments: [{ id: await segmentId() }],
+          segments: [{ id: segments.send }, ...(segments.crm ? [{ id: segments.crm }] : [])],
         }),
       ),
     );

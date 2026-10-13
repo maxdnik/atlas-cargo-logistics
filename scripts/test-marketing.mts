@@ -86,6 +86,7 @@ globalThis.fetch = async (input: RequestInfo | URL, options?: RequestInit) => {
     data = broadcast;
   else if (url.pathname === `/broadcasts/${id}/send`) data = { id };
   else if (url.pathname === "/broadcasts" && method === "POST") data = { id };
+  else if (url.pathname === "/segments") data = { data: [], has_more: false };
   else if (url.pathname.startsWith("/contacts/") && method === "GET")
     data = { id: "contact-1", email: "person@example.com", unsubscribed };
   else if (

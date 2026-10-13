@@ -163,6 +163,8 @@ export async function senderStatus() {
     verified: details.status === "verified",
     domainStatus: details.status,
     records: details.records,
+    openTracking: details.open_tracking,
+    clickTracking: details.click_tracking,
   };
 }
 export async function requireVerifiedSender() {
