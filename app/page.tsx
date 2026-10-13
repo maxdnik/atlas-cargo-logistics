@@ -71,6 +71,6 @@ export default function Home() {
         </div>
       </section>
     </main>
-    <footer className="footer"><div className="container"><div className="footer-main"><a href="#inicio" aria-label="Atlas Cargo SRL, volver al inicio"><Image className="footer-logo" src="/images/atlas-cargo-logo.webp" alt="Atlas Cargo SRL" width={1000} height={151} /></a><p>Tu carga. Nuestro compromiso.</p><a href="#inicio" className="back-top">Volver arriba <ArrowUpRight size={18} aria-hidden="true" /></a></div><div className="footer-bottom"><span>© {new Date().getFullYear()} Atlas Cargo SRL. Todos los derechos reservados.</span><span>LOGÍSTICA INTERNACIONAL</span></div></div></footer>
+    <footer className="footer"><div className="container"><div className="footer-main"><a href="#inicio" aria-label="Atlas Cargo Logistics, volver al inicio"><Image className="footer-logo" src="/images/atlas-cargo-logistics.webp" alt="Atlas Cargo Logistics" width={384} height={384} sizes="(max-width: 700px) 100px, 128px" /></a><p>Tu carga. Nuestro compromiso.</p><a href="#inicio" className="back-top">Volver arriba <ArrowUpRight size={18} aria-hidden="true" /></a></div><div className="footer-bottom"><span>© {new Date().getFullYear()} Atlas Cargo SRL. Todos los derechos reservados.</span><span>LOGÍSTICA INTERNACIONAL</span></div></div></footer>
   </>;
 }

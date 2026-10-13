@@ -10,7 +10,7 @@ export default function SiteHeader() {
   const toggle = useRef<HTMLButtonElement>(null);
   return <header className="site-header" onKeyDown={(event) => { if (event.key === "Escape" && open) { setOpen(false); toggle.current?.focus(); } }}>
     <div className="container header-inner">
-      <a className="brand" href="#inicio" aria-label="Atlas Cargo SRL, inicio" onClick={() => setOpen(false)}><Image src="/images/atlas-cargo-logo.webp" alt="Atlas Cargo SRL" width={1000} height={151} loading="eager" /></a>
+      <a className="brand" href="#inicio" aria-label="Atlas Cargo Logistics, inicio" onClick={() => setOpen(false)}><Image src="/images/atlas-cargo-logistics.webp" alt="Atlas Cargo Logistics" width={384} height={384} sizes="(max-width: 700px) 100px, 128px" loading="eager" /></a>
       <button ref={toggle} className="menu-toggle" type="button" aria-expanded={open} aria-controls="site-navigation" aria-label={open ? "Cerrar menú" : "Abrir menú"} onClick={() => setOpen(!open)}>{open ? <X size={25} /> : <Menu size={25} />}</button>
       <nav id="site-navigation" className={`site-navigation${open ? " is-open" : ""}`} aria-label="Navegación principal">
         {links.map(({ href, label }) => <a key={href} href={href} onClick={() => setOpen(false)}>{label}</a>)}
