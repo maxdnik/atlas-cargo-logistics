@@ -103,6 +103,7 @@ export default function MarketingPanel({ testEmail }: { testEmail: string }) {
   const [more, setMore] = useState(false);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [checkingPlan, setCheckingPlan] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [editor, setEditor] = useState<Campaign | null>(null);
@@ -196,6 +197,26 @@ export default function MarketingPanel({ testEmail }: { testEmail: string }) {
     } finally {
       setBusy(false);
     }
+  }
+  async function checkMarketingPlan() {
+    if (busy) return;
+    await task(async () => {
+      setCheckingPlan(true);
+      try {
+        const updated: Setup = await api("marketing/status");
+        const capacity = updated.contactCapacity;
+        if (!capacity)
+          throw Error("Resend no devolvió el límite de Marketing. No pudimos comprobar el cambio de plan; intentá nuevamente.");
+        setSetup(updated);
+        if (capacity.exceeded) {
+          setError(`Comprobado: Resend sigue informando un límite de ${capacity.limit.toLocaleString("es-AR")} contactos en Marketing y la cuenta tiene ${capacity.used.toLocaleString("es-AR")}. Revisá la suscripción Marketing en Billing. Ampliar Transactional no aumenta este límite.`);
+        } else {
+          setMessage(`Plan Marketing comprobado: límite de ${capacity.limit.toLocaleString("es-AR")} contactos. La base de ${capacity.used.toLocaleString("es-AR")} contactos está dentro del límite.`);
+        }
+      } finally {
+        setCheckingPlan(false);
+      }
+    });
   }
   function navigate(next: View) {
     if (
@@ -422,15 +443,16 @@ export default function MarketingPanel({ testEmail }: { testEmail: string }) {
           {setup?.contactCapacity?.exceeded && (
             <div className="admin-notice" role="status">
               <div>
-                <strong>Ampliá el plan de contactos para enviar campañas.</strong>
+                <strong>Ampliá el plan Marketing de Resend para enviar campañas.</strong>
                 <p>
-                  Tu plan de Resend permite {setup.contactCapacity.limit.toLocaleString("es-AR")} contactos y
-                  la cuenta tiene {setup.contactCapacity.used.toLocaleString("es-AR")}. La base está guardada;
-                  Resend bloquea las campañas hasta ampliar el plan.
+                  Tu plan Marketing permite {setup.contactCapacity.limit.toLocaleString("es-AR")} contactos y
+                  la cuenta tiene {setup.contactCapacity.used.toLocaleString("es-AR")}. La base está guardada.
+                  En Resend, abrí Billing y revisá la fila Marketing: ampliar Transactional
+                  aumenta los correos transaccionales, pero no el límite de contactos de las campañas.
                 </p>
                 <div className="admin-actions">
-                  <a className="admin-button" href="https://resend.com/settings/billing" target="_blank" rel="noopener noreferrer">Abrir planes de Resend <ArrowUpRight size={16} /></a>
-                  <button className="admin-button" disabled={busy} onClick={() => void task(async () => { setSetup(await api("marketing/status")); })}>Ya lo actualicé: comprobar</button>
+                  <a className="admin-button" href="https://resend.com/settings/billing" target="_blank" rel="noopener noreferrer">Ver plan Marketing en Resend <ArrowUpRight size={16} /></a>
+                  <button className="admin-button" disabled={busy} aria-busy={checkingPlan} onClick={() => void checkMarketingPlan()}>{checkingPlan ? "Comprobando plan Marketing…" : "Ya lo actualicé: comprobar"}</button>
                 </div>
               </div>
             </div>
