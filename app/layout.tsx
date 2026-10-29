@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     title: "Atlas Cargo SRL | Tu carga. Nuestro compromiso.",
     description: "Soluciones de transporte y coordinación logística para empresas. Aéreo, marítimo y terrestre.",
     url: "/", siteName: "Atlas Cargo SRL", locale: "es_AR", type: "website",
-    images: [{ url: "/images/social-cover.jpg", width: 1200, height: 675, alt: "Atlas Cargo SRL. Tu carga. Nuestro compromiso." }],
+    images: [{ url: "/brand/atlas-cargo-social.png", width: 1200, height: 630, alt: "Atlas Cargo: logotipo azul marino y rojo." }],
   },
   twitter: { card: "summary_large_image" },
 };
