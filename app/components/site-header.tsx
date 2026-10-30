@@ -3,7 +3,7 @@ import Image from "next/image";
 import { useRef, useState } from "react";
 import { ArrowUpRight, Menu, X } from "lucide-react";
 
-const links = [{ href: "#inicio", label: "Inicio" }, { href: "#servicios", label: "Servicios" }, { href: "#nosotros", label: "Nosotros" }, { href: "#contacto", label: "Contacto" }];
+const links = [{ href: "#inicio", label: "Inicio" }, { href: "#servicios", label: "Servicios" }, { href: "#plataforma", label: "Plataforma" }, { href: "#nosotros", label: "Nosotros" }, { href: "#contacto", label: "Contacto" }];
 
 export default function SiteHeader() {
   const [open, setOpen] = useState(false);

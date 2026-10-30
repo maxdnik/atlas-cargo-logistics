@@ -2,6 +2,7 @@ import Image from "next/image";
 import { ArrowDown, ArrowUpRight, Check, Cog, FileCheck2, Globe2, Mail, MapPin, Plane, Radar, Ship, Truck } from "lucide-react";
 import SiteHeader from "./components/site-header";
 import ContactForm from "./components/contact-form";
+import PlatformShowcase from "./components/platform-showcase";
 
 const transportServices = [
   { number: "01", title: "Transporte marítimo", claim: "Conectamos tu negocio con el mundo.", description: "Coordinación de importaciones y exportaciones. Contenedores completos (FCL), carga consolidada (LCL) y seguimiento de cada embarque.", image: "/images/port.webp", alt: "Buque portacontenedores junto a las grúas de un puerto al atardecer", icon: Ship },
@@ -28,7 +29,7 @@ export default function Home() {
           <p className="hero-description">Soluciones de transporte y coordinación logística para empresas. De origen a destino, con un equipo cerca.</p>
           <div className="hero-actions">
             <a className="button button-red" href="#contacto">Conversemos sobre tu carga <ArrowUpRight size={20} aria-hidden="true" /></a>
-            <a className="hero-link" href="#servicios">Explorar servicios <ArrowDown size={18} aria-hidden="true" /></a>
+            <a className="hero-link" href="#plataforma">Conocé nuestra plataforma <ArrowDown size={18} aria-hidden="true" /></a>
           </div>
         </div>
         <div className="hero-bottom container"><div className="transport-modes"><span>Aéreo</span><i /><span>Marítimo</span><i /><span>Terrestre</span></div><span className="hero-location">BUENOS AIRES, ARGENTINA <Globe2 size={17} aria-hidden="true" /></span></div>
@@ -46,6 +47,8 @@ export default function Home() {
           <div className="complementary-grid">{complementaryServices.map(({ title, description, icon: Icon }) => <article className="complementary-service" key={title}><Icon size={29} strokeWidth={1.4} aria-hidden="true" /><div><h3>{title}</h3><p>{description}</p></div></article>)}</div>
         </div>
       </section>
+
+      <PlatformShowcase />
 
       <section className="about section-space" id="nosotros" aria-labelledby="about-title">
         <div className="container about-grid">
