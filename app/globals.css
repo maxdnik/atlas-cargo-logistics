@@ -290,3 +290,77 @@ h2 { font-size: clamp(32px, 3.4vw, 49px); line-height: 1.12; letter-spacing: -.0
   .back-top { gap: 7px; font-size: 10px; padding-top: 6px; } .footer-bottom { align-items: flex-start; flex-direction: column; gap: 15px; line-height: 1.7; font-size: 9px; }
 }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
+
+/* Public service pages share the established Atlas palette and typography. */
+.hero h1.seo-hero-title { font-size: clamp(46px, 6.2vw, 88px); line-height: 1.05; max-width: 1000px; }
+.hero-description { max-width: 590px; }
+.trade-route { padding-block: 58px; background: var(--paper); border-top: 1px solid var(--line); }
+.trade-route > .container, .quote-band > .container { display: flex; align-items: center; justify-content: space-between; gap: 48px; }
+.trade-route h2, .quote-band h2 { font-size: clamp(28px, 3vw, 40px); }
+.trade-route p:not(.eyebrow), .quote-band p { max-width: 700px; color: var(--muted); line-height: 1.8; margin-top: 20px; }
+.trade-route .button, .quote-band .button { flex-shrink: 0; }
+.service-hero { background: var(--navy); color: white; padding: 38px 0 72px; }
+.breadcrumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 12px; line-height: 1.7; color: #c5d1df; margin-bottom: 44px; }
+.breadcrumbs a { text-decoration: underline; text-underline-offset: 4px; }
+.service-hero h1 { font-size: clamp(36px, 4vw, 60px); line-height: 1.1; letter-spacing: -.045em; max-width: 920px; }
+.service-hero p:not(.eyebrow) { max-width: 720px; font-size: 17px; line-height: 1.8; color: #dce5ef; margin-top: 26px; }
+.service-hero .button { margin-top: 30px; }
+.service-hero-grid { display: grid; grid-template-columns: 1.25fr .85fr; gap: 56px; align-items: center; }
+.service-hero-image { position: relative; min-height: 380px; height: 100%; max-height: 500px; margin-top: 25px; overflow: hidden; }
+.service-hero-image img { object-fit: cover; }
+.service-content { display: grid; grid-template-columns: minmax(0, 1fr) 350px; gap: 85px; align-items: start; }
+.service-article > section + section { margin-top: 46px; }
+.service-article h2 { font-size: clamp(25px, 2.5vw, 34px); line-height: 1.2; letter-spacing: -.035em; }
+.service-article p { font-size: 16px; line-height: 1.85; color: var(--muted); margin-top: 18px; }
+.quote-checklist { background: var(--paper); border-top: 3px solid var(--red); padding: 30px; scroll-margin-top: 110px; }
+.quote-checklist h2 { font-size: 28px; line-height: 1.15; }
+.quote-checklist ul { padding: 0; margin: 28px 0; list-style: none; display: grid; gap: 18px; }
+.quote-checklist li { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; color: var(--muted); line-height: 1.7; }
+.quote-checklist li svg { color: #b52b23; margin-top: 3px; }
+.quote-checklist .button { width: 100%; gap: 15px; font-size: 13px; }
+.service-faq details { padding-block: 21px; border-bottom: 1px solid var(--line); }
+.service-faq details:first-of-type { margin-top: 18px; }
+.service-faq summary { font-size: 16px; font-weight: 600; line-height: 1.55; cursor: pointer; }
+.service-faq details p { font-size: 15px; }
+.related-services { background: var(--paper); }
+.related-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 24px; margin-top: 35px; }
+.related-grid a { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 25px; background: white; border: 1px solid var(--line); font-size: 18px; font-weight: 600; line-height: 1.4; }
+.related-grid svg { color: #b52b23; }
+.all-services { display: inline-block; font-size: 14px; margin-top: 28px; text-decoration: underline; text-underline-offset: 4px; }
+.service-directory { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 26px; margin-top: 40px; }
+.service-directory article { border: 1px solid var(--line); padding: 32px; display: flex; flex-direction: column; }
+.directory-number { font-size: 12px; color: #b52b23; margin-bottom: 22px; }
+.service-directory h3 { font-size: 28px; line-height: 1.2; letter-spacing: -.025em; }
+.service-directory p { font-size: 15px; color: var(--muted); line-height: 1.8; margin: 20px 0 28px; }
+.quote-band { background: var(--paper); padding-block: 58px; }
+.footer-services { display: grid; grid-template-columns: 1.4fr 1fr; gap: 50px; padding: 0 0 35px; }
+.footer-services h2 { font-size: 15px; line-height: 1.4; letter-spacing: 0; margin-bottom: 18px; }
+.footer-services nav { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px 28px; }
+.footer-services a, .footer-services p { color: #c0ccdb; font-size: 13px; line-height: 1.7; }
+.footer-services a:hover { color: white; text-decoration: underline; text-underline-offset: 4px; }
+.footer-services .footer-contact { display: block; margin-block: 10px; overflow-wrap: anywhere; }
+@media (max-width: 1100px) {
+  .service-content { gap: 40px; grid-template-columns: minmax(0,1fr) 310px; }
+  .service-hero-grid { gap: 32px; }
+  .trade-route > .container, .quote-band > .container { gap: 28px; }
+}
+@media (max-width: 850px) {
+  .service-hero-grid, .service-content { grid-template-columns: 1fr; gap: 40px; }
+  .service-hero-image { height: 300px; min-height: 0; margin-top: 0; }
+  .service-content .quote-checklist { max-width: none; }
+  .related-grid { grid-template-columns: 1fr; gap: 14px; }
+  .trade-route > .container, .quote-band > .container { flex-direction: column; align-items: flex-start; }
+  .footer-services { gap: 30px; }
+}
+@media (max-width: 700px) {
+  .hero h1.seo-hero-title { font-size: clamp(38px, 9vw, 60px); letter-spacing: -.05em; }
+  .service-hero { padding-block: 25px 45px; }
+  .service-hero h1 { font-size: 38px; }
+  .service-hero p:not(.eyebrow) { font-size: 15px; }
+  .breadcrumbs { margin-bottom: 30px; font-size: 11px; }
+  .service-article p { font-size: 15px; }
+  .service-directory, .footer-services, .footer-services nav { grid-template-columns: 1fr; }
+  .service-directory article { padding: 26px; }
+  .quote-checklist { padding: 26px; }
+  .service-hero-image { height: 240px; }
+}
