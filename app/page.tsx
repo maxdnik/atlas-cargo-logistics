@@ -4,6 +4,12 @@ import SiteHeader from "./components/site-header";
 import ContactForm from "./components/contact-form";
 import PlatformShowcase from "./components/platform-showcase";
 
+const instagramUrl = "https://www.instagram.com/atlas.cargo.argentina/";
+
+function InstagramIcon() {
+  return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" /></svg>;
+}
+
 const transportServices = [
   { number: "01", title: "Transporte marítimo", claim: "Conectamos tu negocio con el mundo.", description: "Coordinación de importaciones y exportaciones. Contenedores completos (FCL), carga consolidada (LCL) y seguimiento de cada embarque.", image: "/images/port.webp", alt: "Buque portacontenedores junto a las grúas de un puerto al atardecer", icon: Ship },
   { number: "02", title: "Transporte aéreo", claim: "Cada hora cuenta.", description: "Envíos para cargas con plazos exigentes. Repuestos, equipos y mercadería, con coordinación documental y operativa.", image: "/images/air.webp", alt: "Avión de carga y pallets en una plataforma de carga aeroportuaria", icon: Plane },
@@ -69,11 +75,11 @@ export default function Home() {
 
       <section className="contact section-space" id="contacto" aria-labelledby="contact-title">
         <div className="container contact-grid">
-          <div className="contact-intro"><p className="eyebrow"><span /> EMPECEMOS A CONECTAR</p><h2 id="contact-title">Tu próximo<br />embarque<br /><span>empieza acá.</span></h2><p>Contanos qué necesitás transportar.<br />Te ayudamos a encontrar el camino.</p><div className="contact-details"><a href="mailto:maximo.dimnik@atlas-cargo-logistics.com"><Mail size={20} aria-hidden="true" /><span>Escribinos directamente<strong>maximo.dimnik@atlas-cargo-logistics.com</strong></span></a><div><MapPin size={20} aria-hidden="true" /><span>Desde Argentina, conectados al mundo<strong>Buenos Aires, Argentina</strong></span></div></div><p className="contact-note"><Check size={15} aria-hidden="true" /> Atención directa de nuestro equipo.</p></div>
+          <div className="contact-intro"><p className="eyebrow"><span /> EMPECEMOS A CONECTAR</p><h2 id="contact-title">Tu próximo<br />embarque<br /><span>empieza acá.</span></h2><p>Contanos qué necesitás transportar.<br />Te ayudamos a encontrar el camino.</p><div className="contact-details"><a href="mailto:maximo.dimnik@atlas-cargo-logistics.com"><Mail size={20} aria-hidden="true" /><span>Escribinos directamente<strong>maximo.dimnik@atlas-cargo-logistics.com</strong></span></a><div><MapPin size={20} aria-hidden="true" /><span>Desde Argentina, conectados al mundo<strong>Buenos Aires, Argentina</strong></span></div><a href={instagramUrl} target="_blank" rel="noopener noreferrer" aria-label="Seguinos en Instagram: @atlas.cargo.argentina (abre en una nueva pestaña)"><InstagramIcon /><span>Seguinos en Instagram<strong>@atlas.cargo.argentina</strong></span></a></div><p className="contact-note"><Check size={15} aria-hidden="true" /> Atención directa de nuestro equipo.</p></div>
           <ContactForm />
         </div>
       </section>
     </main>
-    <footer className="footer"><div className="container"><div className="footer-main"><a href="#inicio" aria-label="Atlas Cargo, volver al inicio"><Image className="footer-logo" src="/brand/atlas-cargo-logo-dark.png" alt="Atlas Cargo" width={1000} height={251} sizes="(max-width: 700px) 200px, 260px" /></a><p>Tu carga. Nuestro compromiso.</p><a href="#inicio" className="back-top">Volver arriba <ArrowUpRight size={18} aria-hidden="true" /></a></div><div className="footer-bottom"><span>© {new Date().getFullYear()} Atlas Cargo SRL. Todos los derechos reservados.</span><span>LOGÍSTICA INTERNACIONAL</span></div></div></footer>
+    <footer className="footer"><div className="container"><div className="footer-main"><a href="#inicio" aria-label="Atlas Cargo, volver al inicio"><Image className="footer-logo" src="/brand/atlas-cargo-logo-dark.png" alt="Atlas Cargo" width={1000} height={251} sizes="(max-width: 700px) 200px, 260px" /></a><p>Tu carga. Nuestro compromiso.</p><a href="#inicio" className="back-top">Volver arriba <ArrowUpRight size={18} aria-hidden="true" /></a></div><div className="footer-bottom"><span>© {new Date().getFullYear()} Atlas Cargo SRL. Todos los derechos reservados.</span><a href={instagramUrl} className="footer-instagram" target="_blank" rel="noopener noreferrer" aria-label="Instagram de Atlas Cargo: @atlas.cargo.argentina (abre en una nueva pestaña)"><InstagramIcon /><span>@atlas.cargo.argentina</span></a><span>LOGÍSTICA INTERNACIONAL</span></div></div></footer>
   </>;
 }

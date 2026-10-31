@@ -14,12 +14,11 @@ export default function PlatformShowcase() {
       <div className="container">
         <div className="platform-heading">
           <p className="eyebrow"><span /> PLATAFORMA ATLAS CARGO</p>
-          <span className="platform-status">EN DESARROLLO</span>
         </div>
         <div className="platform-grid">
           <div className="platform-copy">
             <h2 id="platform-title">Tus embarques.<br /><span>Toda la información,<br />en un solo lugar.</span></h2>
-            <p className="platform-description">Estamos desarrollando un portal para que importadores y exportadores consulten sus operaciones, fechas y documentación desde un mismo espacio.</p>
+            <p className="platform-description">Un portal pensado para que importadores y exportadores consulten sus operaciones, fechas y documentación desde un mismo espacio.</p>
             <ul className="platform-benefits">
               {benefits.map(({ icon: Icon, title, description }) => (
                 <li key={title}><Icon size={23} strokeWidth={1.5} aria-hidden="true" /><div><h3>{title}</h3><p>{description}</p></div></li>
@@ -47,7 +46,7 @@ export default function PlatformShowcase() {
                 <div className="portal-documents"><div className="portal-documents-title"><FolderOpen size={16} aria-hidden="true" /><h4>Documentos del embarque</h4></div>{["Factura comercial", "Packing list", "Documento de transporte"].map((document) => <div className="portal-document" key={document}><FileText size={15} aria-hidden="true" /><span>{document}</span><span className="portal-file-type">PDF</span></div>)}</div>
               </div>
             </div>
-            <figcaption id="portal-preview-caption">Vista ilustrativa con datos de ejemplo. Portal en desarrollo.</figcaption>
+            <figcaption id="portal-preview-caption">Vista ilustrativa con datos de ejemplo.</figcaption>
           </figure>
         </div>
       </div>

@@ -78,7 +78,6 @@ h2 { font-size: clamp(32px, 3.4vw, 49px); line-height: 1.12; letter-spacing: -.0
 .platform { background: #f4f6f8; border-top: 1px solid var(--line); overflow: hidden; }
 .platform-heading { display: flex; align-items: center; flex-wrap: wrap; gap: 18px; margin-bottom: 30px; }
 .platform-heading .eyebrow { margin: 0; }
-.platform-status { border: 1px solid #d4dae2; color: #596778; border-radius: 3px; padding: 6px 9px; font-size: 9px; font-weight: 700; letter-spacing: .1em; }
 .platform-grid { display: grid; grid-template-columns: .92fr 1.08fr; align-items: center; gap: 66px; }
 .platform-copy { min-width: 0; }
 .platform-copy h2 { font-size: clamp(32px, 3.1vw, 46px); line-height: 1.12; }
@@ -229,7 +228,9 @@ h2 { font-size: clamp(32px, 3.4vw, 49px); line-height: 1.12; letter-spacing: -.0
 .footer-main p { font-size: 15px; color: #c0ccdb; }
 .back-top { display: flex; align-items: center; gap: 18px; font-size: 11px; }
 .back-top svg { color: var(--red); }
-.footer-bottom { display: flex; align-items: center; justify-content: space-between; gap: 25px; border-top: 1px solid #ffffff24; padding-block: 22px; font-size: 10px; color: #b2bfd0; }
+.footer-bottom { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 25px; border-top: 1px solid #ffffff24; padding-block: 22px; font-size: 10px; color: #b2bfd0; }
+.footer-instagram { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; }
+.footer-instagram:hover { color: #fff; text-decoration: underline; }
 .footer-bottom > span:last-child { font-size: 9px; letter-spacing: .17em; }
 @media (min-width: 1600px) { .hero { min-height: 770px; } .hero-content { padding-top: 105px; } }
 @media (max-width: 1100px) {
