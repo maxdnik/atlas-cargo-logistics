@@ -1,7 +1,22 @@
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
+import { Resend } from "resend";
+import { z } from "zod";
+import { randomUUID } from "node:crypto";
 
 export const runtime = "nodejs";
+
+// The destination stays on the server and never comes from the form payload.
+const contactEmail = "maximo.dimnik@atlas-cargo-logistics.com";
+const contactSchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  company: z.string().trim().max(160).optional().default(""),
+  email: z.string().trim().email().max(254),
+  phone: z.string().trim().max(50).optional().default(""),
+  service: z.string().trim().min(1).max(100).refine((value) => !/[\r\n]/.test(value)),
+  message: z.string().trim().min(1).max(5000),
+  submissionId: z.string().uuid().optional(),
+});
 
 function escapeHtml(value: unknown) {
   return String(value ?? "")
@@ -14,51 +29,17 @@ function escapeHtml(value: unknown) {
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-
-    const name = String(body.name || "").trim();
-    const company = String(body.company || "").trim();
-    const email = String(body.email || "").trim();
-    const phone = String(body.phone || "").trim();
-    const service = String(body.service || "").trim();
-    const message = String(body.message || "").trim();
-
-    if (!name || !email || !service || !message) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Faltan campos obligatorios.",
-        },
-        { status: 400 }
-      );
+    let raw: unknown;
+    try {
+      const text = await request.text();
+      if (text.length > 20000) return NextResponse.json({ success: false, message: "La consulta es demasiado larga." }, { status: 413 });
+      raw = JSON.parse(text);
+    } catch {
+      return NextResponse.json({ success: false, message: "Revisá los datos de la consulta." }, { status: 400 });
     }
-
-    const smtpHost = process.env.SMTP_HOST;
-    const smtpPort = Number(process.env.SMTP_PORT || 587);
-    const smtpUser = process.env.SMTP_USER;
-    const smtpPass = process.env.SMTP_PASS;
-    const contactEmail =
-      process.env.CONTACT_EMAIL || "maximo.dimnik@atlas-cargo-logistics.com";
-
-    if (!smtpHost || !smtpUser || !smtpPass) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Faltan variables SMTP en el servidor.",
-        },
-        { status: 500 }
-      );
-    }
-
-    const transporter = nodemailer.createTransport({
-      host: smtpHost,
-      port: smtpPort,
-      secure: smtpPort === 465,
-      auth: {
-        user: smtpUser,
-        pass: smtpPass,
-      },
-    });
+    const parsed = contactSchema.safeParse(raw);
+    if (!parsed.success) return NextResponse.json({ success: false, message: "Revisá los campos obligatorios y el email." }, { status: 400 });
+    const { name, company, email, phone, service, message, submissionId } = parsed.data;
 
     const html = `
       <div style="font-family: Arial, sans-serif; color: #09264a; padding: 24px;">
@@ -102,8 +83,7 @@ export async function POST(request: Request) {
       </div>
     `;
 
-    await transporter.sendMail({
-      from: `"Atlas Cargo Logistics" <${smtpUser}>`,
+    const mail = {
       to: contactEmail,
       replyTo: email,
       subject: `Nueva consulta comercial - ${service}`,
@@ -120,14 +100,43 @@ Servicio: ${service}
 Mensaje:
 ${message}
       `.trim(),
-    });
+    };
+
+    if (process.env.RESEND_API_KEY) {
+      const result = await new Resend(process.env.RESEND_API_KEY).emails.send(
+        { ...mail, from: `Atlas Cargo Web <${contactEmail}>` },
+        { idempotencyKey: `atlas-contact/${submissionId || randomUUID()}` },
+      );
+      if (result.error || !result.data?.id) {
+        console.error("CONTACT_FORM_RESEND", result.error?.name || "empty_response");
+        return NextResponse.json({ success: false, message: "No pudimos confirmar el envío. Intentá nuevamente." }, { status: 502 });
+      }
+    } else {
+      const { SMTP_HOST, SMTP_USER, SMTP_PASS } = process.env;
+      if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
+        console.error("CONTACT_FORM_NOT_CONFIGURED");
+        return NextResponse.json({ success: false, message: "El envío no está disponible temporalmente." }, { status: 503 });
+      }
+      const port = Number(process.env.SMTP_PORT || 587);
+      const transporter = nodemailer.createTransport({
+        host: SMTP_HOST,
+        port,
+        secure: port === 465,
+        auth: { user: SMTP_USER, pass: SMTP_PASS },
+        connectionTimeout: 5000,
+        greetingTimeout: 5000,
+        socketTimeout: 10000,
+      });
+      const result = await transporter.sendMail({ ...mail, from: `"Atlas Cargo Web" <${SMTP_USER}>` });
+      if (!result.accepted?.some((recipient) => String(recipient).toLowerCase() === contactEmail)) throw new Error("RecipientNotAccepted");
+    }
 
     return NextResponse.json({
       success: true,
       message: "Consulta enviada correctamente.",
     });
   } catch (error) {
-    console.error("CONTACT_FORM_ERROR", error);
+    console.error("CONTACT_FORM_ERROR", error instanceof Error ? error.name : "unknown");
 
     return NextResponse.json(
       {

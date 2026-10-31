@@ -5,22 +5,26 @@ import { ArrowUpRight, CheckCircle2, LoaderCircle } from "lucide-react";
 export default function ContactForm() {
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
   const submitting = useRef(false);
+  const submission = useRef<{ payload: string; id: string } | null>(null);
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (submitting.current) return;
     submitting.current = true;
     const form = event.currentTarget;
     const data = new FormData(form);
+    const payload = JSON.stringify({ name: data.get("name"), company: data.get("company"), email: data.get("email"), phone: data.get("phone"), service: data.get("service"), message: data.get("message") });
+    if (submission.current?.payload !== payload) submission.current = { payload, id: crypto.randomUUID() };
     setStatus("sending");
     try {
       const response = await fetch("/api/contact", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: data.get("name"), company: data.get("company"), email: data.get("email"), phone: data.get("phone"), service: data.get("service"), message: data.get("message") }),
+        body: JSON.stringify({ ...JSON.parse(payload), submissionId: submission.current.id }),
         signal: AbortSignal.timeout(20000),
       });
       const result = await response.json();
       if (!response.ok || !result.success) throw new Error("Contact request failed");
       form.reset();
+      submission.current = null;
       setStatus("success");
     } catch { setStatus("error"); }
     finally { submitting.current = false; }
@@ -36,6 +40,6 @@ export default function ContactForm() {
       <label className="full-width" htmlFor="message">Contanos sobre tu carga <span>*</span><textarea id="message" name="message" rows={4} placeholder="Origen, destino, tipo de carga y fecha estimada…" required maxLength={5000} /></label>
     </div>
     <div className="form-bottom"><span>* Campos obligatorios</span><button type="submit" className="button button-red" disabled={status === "sending"}>{status === "sending" ? <>Enviando <LoaderCircle size={19} className="spinner" aria-hidden="true" /></> : <>Enviar consulta <ArrowUpRight size={19} aria-hidden="true" /></>}</button></div>
-    <div aria-live="polite" aria-atomic="true">{status === "success" && <p className="form-message success"><CheckCircle2 size={19} aria-hidden="true" /> Recibimos tu consulta. Nuestro equipo se pondrá en contacto con vos.</p>}{status === "error" && <p className="form-message error">No pudimos confirmar el envío. Intentá nuevamente o <a href="mailto:maximo.dimnik@atlas-cargo-logistics.com">escribinos por email</a>.</p>}</div>
+    <div aria-live="polite" aria-atomic="true">{status === "success" && <p className="form-message success"><CheckCircle2 size={19} aria-hidden="true" /> Recibimos tu consulta. Nuestro equipo se pondrá en contacto con vos.</p>}{status === "error" && <p className="form-message error">No pudimos confirmar el envío. Tus datos siguen en el formulario; intentá nuevamente en unos momentos.</p>}</div>
   </form>;
 }
