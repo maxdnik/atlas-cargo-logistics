@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { ArrowDown, ArrowUpRight, Check, Cog, FileCheck2, Globe2, Mail, MapPin, Plane, Radar, Ship, Truck } from "lucide-react";
+import { ArrowDown, ArrowUpRight, Check, Cog, FileCheck2, Globe2, MapPin, Plane, Radar, Ship, Truck } from "lucide-react";
 import SiteHeader from "./components/site-header";
 import ContactForm from "./components/contact-form";
 import PlatformShowcase from "./components/platform-showcase";
@@ -75,7 +75,7 @@ export default function Home() {
 
       <section className="contact section-space" id="contacto" aria-labelledby="contact-title">
         <div className="container contact-grid">
-          <div className="contact-intro"><p className="eyebrow"><span /> EMPECEMOS A CONECTAR</p><h2 id="contact-title">Tu próximo<br />embarque<br /><span>empieza acá.</span></h2><p>Contanos qué necesitás transportar.<br />Te ayudamos a encontrar el camino.</p><div className="contact-details"><a href="mailto:maximo.dimnik@atlas-cargo-logistics.com"><Mail size={20} aria-hidden="true" /><span>Escribinos directamente<strong>maximo.dimnik@atlas-cargo-logistics.com</strong></span></a><div><MapPin size={20} aria-hidden="true" /><span>Desde Argentina, conectados al mundo<strong>Buenos Aires, Argentina</strong></span></div><a href={instagramUrl} target="_blank" rel="noopener noreferrer" aria-label="Seguinos en Instagram: @atlas.cargo.argentina (abre en una nueva pestaña)"><InstagramIcon /><span>Seguinos en Instagram<strong>@atlas.cargo.argentina</strong></span></a></div><p className="contact-note"><Check size={15} aria-hidden="true" /> Atención directa de nuestro equipo.</p></div>
+          <div className="contact-intro"><p className="eyebrow"><span /> EMPECEMOS A CONECTAR</p><h2 id="contact-title">Tu próximo<br />embarque<br /><span>empieza acá.</span></h2><p>Contanos qué necesitás transportar.<br />Te ayudamos a encontrar el camino.</p><div className="contact-details"><div><MapPin size={20} aria-hidden="true" /><span>Desde Argentina, conectados al mundo<strong>Buenos Aires, Argentina</strong></span></div><a href={instagramUrl} target="_blank" rel="noopener noreferrer" aria-label="Seguinos en Instagram: @atlas.cargo.argentina (abre en una nueva pestaña)"><InstagramIcon /><span>Seguinos en Instagram<strong>@atlas.cargo.argentina</strong></span></a></div><p className="contact-note"><Check size={15} aria-hidden="true" /> Atención directa de nuestro equipo.</p></div>
           <ContactForm />
         </div>
       </section>

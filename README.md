@@ -23,7 +23,7 @@ La página se renderiza en el servidor. Solamente el menú móvil y el formulari
 
 ## Formulario
 
-`POST /api/contact` conserva la integración SMTP existente. La configuración se administra en Vercel: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` y `CONTACT_EMAIL`. No incluir credenciales en el repositorio.
+`POST /api/contact` envía las consultas al destinatario comercial definido exclusivamente en el servidor. Usa `RESEND_API_KEY`, compartida con el envío existente del sitio, y admite SMTP como alternativa cuando Resend no está configurado (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`). El visitante queda como Reply-To. Los reintentos del mismo formulario usan una clave de idempotencia de Resend. No incluir credenciales en el repositorio.
 
 La interfaz muestra estados de envío, confirmación y error, y ofrece contacto directo por email. No enviar consultas reales durante verificaciones visuales; utilizar respuestas simuladas y solicitudes incompletas para probar la validación.
 
