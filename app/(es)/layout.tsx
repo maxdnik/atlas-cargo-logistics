@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { HOME_DESCRIPTION, HOME_TITLE, SITE_URL } from "@/lib/seo";
-import "./globals.css";
+import "@/app/globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
