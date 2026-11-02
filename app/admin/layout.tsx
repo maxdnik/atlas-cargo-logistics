@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import "@/app/globals.css";
 import "./admin.css";
 export const metadata: Metadata = {
   title: "Administración | Atlas Cargo",
@@ -10,5 +11,5 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <div className="atlas-admin">{children}</div>;
+  return <html lang="es-AR"><body><div className="atlas-admin">{children}</div></body></html>;
 }

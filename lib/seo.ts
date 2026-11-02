@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { localizedPath, type Locale } from "./i18n";
 
 export const SITE_URL = "https://www.atlas-cargo-logistics.com";
 export const SITE_NAME = "Atlas Cargo";
@@ -8,13 +9,18 @@ export const HOME_DESCRIPTION = "Logística internacional para empresas en Argen
 
 export function pageMetadata(title: string, description: string, path: string): Metadata {
   const url = `${SITE_URL}${path}`;
+  const english = path === "/en" || path.startsWith("/en/");
   return {
     title: { absolute: title },
     description,
-    alternates: { canonical: url },
+    alternates: { canonical: url, languages: {
+      "es-AR": `${SITE_URL}${localizedPath(path, "es")}`,
+      en: `${SITE_URL}${localizedPath(path, "en")}`,
+      "x-default": `${SITE_URL}${localizedPath(path, "es")}`,
+    } },
     openGraph: {
-      title, description, url, siteName: SITE_NAME, locale: "es_AR", type: "website",
-      images: [{ url: `${SITE_URL}/brand/atlas-cargo-social.png`, width: 1200, height: 630, alt: "Atlas Cargo · Logística internacional en Argentina" }],
+      title, description, url, siteName: SITE_NAME, locale: english ? "en_US" : "es_AR", alternateLocale: english ? ["es_AR"] : ["en_US"], type: "website",
+      images: [{ url: `${SITE_URL}/brand/atlas-cargo-social.png`, width: 1200, height: 630, alt: english ? "Atlas Cargo · International logistics in Argentina" : "Atlas Cargo · Logística internacional en Argentina" }],
     },
     twitter: { card: "summary_large_image", title, description, images: [`${SITE_URL}/brand/atlas-cargo-social.png`] },
   };
@@ -31,8 +37,16 @@ export const organization = {
   description: "Freight forwarder en Buenos Aires, Argentina. Coordinación de transporte internacional marítimo, aéreo y terrestre para empresas.",
   sameAs: [INSTAGRAM_URL],
   address: { "@type": "PostalAddress", addressLocality: "Buenos Aires", addressCountry: "AR" },
-  contactPoint: { "@type": "ContactPoint", url: `${SITE_URL}/#contacto`, contactType: "sales", availableLanguage: "es" },
+  contactPoint: { "@type": "ContactPoint", url: `${SITE_URL}/#contacto`, contactType: "sales", availableLanguage: ["es", "en"] },
 };
+
+export function localizedOrganization(locale: Locale) {
+  return locale === "es" ? organization : {
+    ...organization,
+    description: "Freight forwarder in Buenos Aires, Argentina. International ocean, air and road freight coordination for businesses.",
+    contactPoint: { ...organization.contactPoint, url: `${SITE_URL}/en#contacto` },
+  };
+}
 
 export function breadcrumbs(items: { name: string; path: string }[]) {
   return {
